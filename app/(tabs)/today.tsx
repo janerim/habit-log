@@ -35,24 +35,27 @@ export default function TodayScreen() {
   useEffect(() => { loadDate(date); }, [date, loadDate]);
 
   const dow = date.getDay();
-  const activeHabits = habits.filter(
-    (h) => h.is_active === 1 && (h.active_days ?? '1111111')[dow] === '1'
-  );
+  const visibleHabits = habits.filter((h) => h.is_active === 1);
+  const isDayActive = (h: typeof habits[number]) =>
+    (h.active_days ?? '1111111')[dow] === '1';
+  const todayHabits = visibleHabits.filter(isDayActive);
+
   const habitsByGroup = useMemo(() => {
-    const m: Record<string, typeof activeHabits> = {};
-    for (const h of activeHabits) {
+    const m: Record<string, typeof visibleHabits> = {};
+    for (const h of visibleHabits) {
       (m[h.group_id] ||= []).push(h);
     }
     return m;
-  }, [activeHabits]);
+  }, [visibleHabits]);
 
-  const totalMinutes = activeHabits.reduce(
+  const totalMinutes = todayHabits.reduce(
     (sum, h) => sum + (records[h.id]?.minutes ?? 0), 0
   );
-  const doneCount = activeHabits.filter(
+  const doneCount = todayHabits.filter(
     (h) => records[h.id]?.is_completed === 1
   ).length;
-  const ratio = activeHabits.length === 0 ? 0 : doneCount / activeHabits.length;
+  const ratio = todayHabits.length === 0 ? 0 : doneCount / todayHabits.length;
+  const activeHabits = visibleHabits;
 
   if (activeHabits.length === 0) {
     return (
@@ -72,7 +75,7 @@ export default function TodayScreen() {
           <Text style={styles.dateSmall}>{format(date, 'yyyy년')}</Text>
           <Text style={styles.date}>{format(date, 'M월 d일 (EEE)')}</Text>
           <Text style={styles.summary}>
-            {doneCount}/{activeHabits.length} 완료
+            {doneCount}/{todayHabits.length} 완료
             {totalMinutes > 0 ? ` · ${formatMinutes(totalMinutes)}` : ''}
           </Text>
         </View>
@@ -83,12 +86,17 @@ export default function TodayScreen() {
         {groups.map((g) => {
           const list = habitsByGroup[g.id] || [];
           if (list.length === 0) return null;
+          // 오늘 활성 요일 습관을 위로, 비활성을 아래로 정렬
+          const sorted = [...list].sort(
+            (a, b) => Number(isDayActive(b)) - Number(isDayActive(a))
+          );
           return (
             <GroupSection
               key={g.id}
               group={g}
-              habits={list}
+              habits={sorted}
               records={records}
+              isDisabled={(h) => !isDayActive(h)}
               onToggle={(habitId) => toggle(date, habitId)}
               onChangeMinutes={(habitId, m) => setMinutes(date, habitId, m)}
             />

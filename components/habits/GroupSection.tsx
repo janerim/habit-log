@@ -13,12 +13,13 @@ interface Props {
   group: HabitGroupRow;
   habits: DBHabit[];
   records: Record<string, HabitRecordRow>;
+  isDisabled?: (h: DBHabit) => boolean;
   onToggle: (habitId: string) => void;
   onChangeMinutes: (habitId: string, minutes: number) => void;
 }
 
 export default function GroupSection({
-  group, habits, records, onToggle, onChangeMinutes,
+  group, habits, records, isDisabled, onToggle, onChangeMinutes,
 }: Props) {
   const total = habits.reduce(
     (sum, h) => sum + (records[h.id]?.minutes ?? 0),
@@ -45,6 +46,7 @@ export default function GroupSection({
             <HabitRow
               habit={h}
               record={records[h.id]}
+              disabled={isDisabled?.(h)}
               onToggle={() => onToggle(h.id)}
               onChangeMinutes={(m) => onChangeMinutes(h.id, m)}
             />

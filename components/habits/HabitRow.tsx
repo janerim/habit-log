@@ -13,12 +13,13 @@ import { HabitRow as DBHabit, HabitRecordRow } from '../../db/database';
 interface Props {
   habit: DBHabit;
   record?: HabitRecordRow;
+  disabled?: boolean;
   onToggle: () => void;
   onChangeMinutes: (m: number) => void;
 }
 
 export default function HabitRow({
-  habit, record, onToggle, onChangeMinutes,
+  habit, record, disabled, onToggle, onChangeMinutes,
 }: Props) {
   const completed = record?.is_completed === 1;
   const scale = useSharedValue(1);
@@ -36,33 +37,50 @@ export default function HabitRow({
   };
 
   return (
-    <View style={styles.row}>
-      <View style={[styles.accent, { backgroundColor: habit.color }]} />
-      <Pressable onPress={handleToggle} style={styles.checkArea} hitSlop={8}>
+    <View style={[styles.row, disabled && styles.rowDisabled]}>
+      <View style={[
+        styles.accent,
+        { backgroundColor: disabled ? '#D1D1D6' : habit.color },
+      ]} />
+      <Pressable
+        onPress={handleToggle}
+        style={styles.checkArea}
+        hitSlop={8}
+        disabled={disabled}
+      >
         <Animated.View
           style={[
             styles.checkbox,
-            { borderColor: habit.color },
-            completed && { backgroundColor: habit.color },
+            { borderColor: disabled ? '#D1D1D6' : habit.color },
+            completed && !disabled && { backgroundColor: habit.color },
             animatedStyle,
           ]}
         >
-          {completed && (
+          {completed && !disabled && (
             <MaterialCommunityIcons name="check" size={18} color="white" />
           )}
         </Animated.View>
       </Pressable>
 
       <View style={styles.center}>
-        <Text style={[styles.name, completed && styles.nameDone]} numberOfLines={1}>
+        <Text
+          style={[
+            styles.name,
+            completed && !disabled && styles.nameDone,
+            disabled && styles.nameDisabled,
+          ]}
+          numberOfLines={1}
+        >
           {habit.name}
         </Text>
-        {habit.target_minutes ? (
+        {disabled ? (
+          <Text style={styles.target}>오늘은 쉬는 날</Text>
+        ) : habit.target_minutes ? (
           <Text style={styles.target}>목표 {habit.target_minutes}분</Text>
         ) : null}
       </View>
 
-      {habit.is_time_tracked === 1 && (
+      {habit.is_time_tracked === 1 && !disabled && (
         <TimePicker
           minutes={record?.minutes ?? 0}
           onChange={onChangeMinutes}
@@ -93,5 +111,7 @@ const styles = StyleSheet.create({
   center: { flex: 1 },
   name: { fontSize: 15, fontWeight: '600', color: '#111' },
   nameDone: { color: '#8E8E93', textDecorationLine: 'line-through' },
+  nameDisabled: { color: '#C7C7CC' },
+  rowDisabled: { backgroundColor: '#FAFAFC' },
   target: { fontSize: 11, color: '#8E8E93', marginTop: 2 },
 });

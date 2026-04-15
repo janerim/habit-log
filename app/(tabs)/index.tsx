@@ -52,7 +52,10 @@ export default function CalendarScreen() {
 
   const today = new Date();
   const todayKey = toDateKey(today);
-  const activeHabits = habits.filter((h) => h.is_active === 1);
+  const todayDow = today.getDay();
+  const activeHabits = habits.filter(
+    (h) => h.is_active === 1 && (h.active_days ?? '1111111')[todayDow] === '1'
+  );
   const todayRecs = byDate[todayKey] || {};
   const doneCount = activeHabits.filter(
     (h) => todayRecs[h.id]?.is_completed === 1
