@@ -15,6 +15,7 @@ import WeekView from '../../components/calendar/WeekView';
 import { useHabitStore } from '../../store/habitStore';
 import { useRecordStore } from '../../store/recordStore';
 import { useMoodStore, MOOD_EMOJIS } from '../../store/moodStore';
+import { useSleepStore } from '../../store/sleepStore';
 import { toDateKey, formatMinutes, format as fmtDate } from '../../utils/dateHelper';
 import {
   startOfMonth as sMonth, endOfMonth as eMonth,
@@ -37,18 +38,21 @@ export default function CalendarScreen() {
   const loadMoods = useMoodStore((s) => s.loadRange);
   const setMood = useMoodStore((s) => s.setMood);
   const clearMood = useMoodStore((s) => s.clearMood);
+  const loadSleep = useSleepStore((s) => s.loadRange);
 
   useEffect(() => {
     if (mode === 'month') {
       loadRange(sMonth(month), eMonth(month));
       loadMoods(sMonth(month), eMonth(month));
+      loadSleep(sMonth(month), eMonth(month));
     } else {
       const ws = sWeek(weekAnchor, { weekStartsOn: 0 });
       const we = eWeek(weekAnchor, { weekStartsOn: 0 });
       loadRange(ws, we);
       loadMoods(ws, we);
+      loadSleep(ws, we);
     }
-  }, [mode, month, weekAnchor, loadRange, loadMoods]);
+  }, [mode, month, weekAnchor, loadRange, loadMoods, loadSleep]);
 
   const today = new Date();
   const todayKey = toDateKey(today);

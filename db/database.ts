@@ -89,6 +89,13 @@ export async function initDatabase(): Promise<void> {
       mood INTEGER NOT NULL,
       updated_at TEXT NOT NULL
     );
+    CREATE TABLE IF NOT EXISTS sleep_records (
+      date TEXT PRIMARY KEY,
+      bed_time TEXT NOT NULL,
+      wake_time TEXT NOT NULL,
+      duration_min INTEGER NOT NULL,
+      updated_at TEXT NOT NULL
+    );
   `);
 
   // --- 마이그레이션: habits.active_days 컬럼 (기존 설치 대비) ---
@@ -149,6 +156,7 @@ export async function resetDatabase(): Promise<void> {
     DELETE FROM habits;
     DELETE FROM habit_groups;
     DELETE FROM daily_moods;
+    DELETE FROM sleep_records;
   `);
   await seedSampleData();
 }
@@ -325,4 +333,45 @@ export async function upsertMood(date: string, mood: number): Promise<void> {
 export async function deleteMood(date: string): Promise<void> {
   const db = await getDB();
   await db.runAsync('DELETE FROM daily_moods WHERE date = ?', [date]);
+}
+
+// --- Sleep records ---------------------------------------------------------
+
+export interface SleepRecordRow {
+  date: string;
+  bed_time: string;   // 'HH:mm'
+  wake_time: string;  // 'HH:mm'
+  duration_min: number;
+  updated_at: string;
+}
+
+export async function fetchSleepInRange(
+  start: string, end: string
+): Promise<SleepRecordRow[]> {
+  const db = await getDB();
+  return db.getAllAsync<SleepRecordRow>(
+    'SELECT * FROM sleep_records WHERE date BETWEEN ? AND ?',
+    [start, end]
+  );
+}
+
+export async function upsertSleep(
+  date: string, bed: string, wake: string, durationMin: number
+): Promise<void> {
+  const db = await getDB();
+  await db.runAsync(
+    `INSERT INTO sleep_records (date, bed_time, wake_time, duration_min, updated_at)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT(date) DO UPDATE SET
+       bed_time = excluded.bed_time,
+       wake_time = excluded.wake_time,
+       duration_min = excluded.duration_min,
+       updated_at = excluded.updated_at`,
+    [date, bed, wake, durationMin, new Date().toISOString()]
+  );
+}
+
+export async function deleteSleep(date: string): Promise<void> {
+  const db = await getDB();
+  await db.runAsync('DELETE FROM sleep_records WHERE date = ?', [date]);
 }

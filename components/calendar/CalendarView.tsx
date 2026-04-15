@@ -9,6 +9,7 @@ import {
 import { useHabitStore } from '../../store/habitStore';
 import { useRecordStore } from '../../store/recordStore';
 import { useMoodStore } from '../../store/moodStore';
+import { useSleepStore } from '../../store/sleepStore';
 
 interface Props {
   month: Date;
@@ -24,6 +25,7 @@ export default function CalendarView({ month, onChangeMonth, onPressDate, onLong
   const habits = useHabitStore((s) => s.habits);
   const byDate = useRecordStore((s) => s.byDate);
   const moodByDate = useMoodStore((s) => s.byDate);
+  const sleepByDate = useSleepStore((s) => s.byDate);
 
   const activeHabits = habits.filter((h) => h.is_active === 1);
 
@@ -68,7 +70,9 @@ export default function CalendarView({ month, onChangeMonth, onPressDate, onLong
       <View style={styles.grid}>
         {days.map((d) => {
           const ratio = computeRatio(d);
-          const mood = moodByDate[toDateKey(d)];
+          const key = toDateKey(d);
+          const mood = moodByDate[key];
+          const sleepMin = sleepByDate[key]?.duration_min;
           return (
             <View key={d.toISOString()} style={styles.cellWrap}>
               <DayCell
@@ -76,6 +80,7 @@ export default function CalendarView({ month, onChangeMonth, onPressDate, onLong
                 month={month}
                 ratio={ratio}
                 mood={mood}
+                sleepMin={sleepMin}
                 onPress={() => onPressDate(d)}
                 onLongPress={() => onLongPressDate?.(d)}
               />

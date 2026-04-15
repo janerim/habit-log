@@ -11,6 +11,7 @@ import { useHabitStore } from '../../store/habitStore';
 import { useRecordStore } from '../../store/recordStore';
 import { parseISO, format, toDateKey, formatMinutes } from '../../utils/dateHelper';
 import GroupSection from '../../components/habits/GroupSection';
+import SleepCard from '../../components/habits/SleepCard';
 
 export default function TodayScreen() {
   const params = useLocalSearchParams<{ date?: string }>();
@@ -83,6 +84,7 @@ export default function TodayScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.list}>
+        <SleepCard date={date} />
         {groups.map((g) => {
           const list = habitsByGroup[g.id] || [];
           if (list.length === 0) return null;

@@ -12,6 +12,7 @@ interface Props {
   month: Date;
   ratio: number; // 0~1
   mood?: number; // 1~5
+  sleepMin?: number;
   onPress: () => void;
   onLongPress?: () => void;
 }
@@ -22,7 +23,7 @@ const RADIUS = (RING_SIZE - RING_STROKE) / 2;
 const CIRC = 2 * Math.PI * RADIUS;
 
 export default function DayCell({
-  date, month, ratio, mood, onPress, onLongPress,
+  date, month, ratio, mood, sleepMin, onPress, onLongPress,
 }: Props) {
   const inMonth = isSameMonth(date, month);
   const today = isToday(date);
@@ -64,17 +65,20 @@ export default function DayCell({
             {date.getDate()}
           </Text>
         </View>
-        {mood && MOOD_META[mood] ? (
-          <View style={[styles.moodBadge, { backgroundColor: MOOD_META[mood].color + '22' }]}>
-            <MaterialCommunityIcons
-              name={MOOD_META[mood].icon as any}
-              size={13}
-              color={MOOD_META[mood].color}
-            />
-          </View>
-        ) : (
-          <View style={{ height: 16 }} />
-        )}
+        <View style={styles.metaRow}>
+          {mood && MOOD_META[mood] ? (
+            <View style={[styles.moodBadge, { backgroundColor: MOOD_META[mood].color + '22' }]}>
+              <MaterialCommunityIcons
+                name={MOOD_META[mood].icon as any}
+                size={11}
+                color={MOOD_META[mood].color}
+              />
+            </View>
+          ) : null}
+          {sleepMin && sleepMin > 0 ? (
+            <Text style={styles.sleepText}>{(sleepMin / 60).toFixed(1)}h</Text>
+          ) : null}
+        </View>
       </View>
     </Pressable>
   );
@@ -98,7 +102,12 @@ const styles = StyleSheet.create({
   todayText: { color: '#0A84FF', fontWeight: '700' },
   mood: { fontSize: 12, marginTop: 2 },
   moodBadge: {
-    width: 18, height: 18, borderRadius: 9, marginTop: 2,
+    width: 16, height: 16, borderRadius: 8,
     alignItems: 'center', justifyContent: 'center',
   },
+  metaRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 3,
+    marginTop: 2, height: 16,
+  },
+  sleepText: { fontSize: 9, color: '#5E5CE6', fontWeight: '700' },
 });

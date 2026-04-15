@@ -11,6 +11,7 @@ import {
 import ChartCard from '../../components/stats/ChartCard';
 import { useHabitStore } from '../../store/habitStore';
 import { useRecordStore } from '../../store/recordStore';
+import { useSleepStore } from '../../store/sleepStore';
 import { toDateKey, formatMinutes } from '../../utils/dateHelper';
 
 type Range = 'week' | 'month';
@@ -21,6 +22,8 @@ export default function StatsScreen() {
   const groups = useHabitStore((s) => s.groups);
   const loadRange = useRecordStore((s) => s.loadRange);
   const byDate = useRecordStore((s) => s.byDate);
+  const loadSleep = useSleepStore((s) => s.loadRange);
+  const sleepByDate = useSleepStore((s) => s.byDate);
 
   const now = new Date();
   const { start, end } = useMemo(() => {
@@ -35,7 +38,8 @@ export default function StatsScreen() {
 
   useEffect(() => {
     loadRange(start, end);
-  }, [start, end, loadRange]);
+    loadSleep(start, end);
+  }, [start, end, loadRange, loadSleep]);
 
   const days = useMemo(() => eachDayOfInterval({ start, end }), [start, end]);
   const activeHabits = habits.filter((h) => h.is_active === 1);
@@ -83,6 +87,15 @@ export default function StatsScreen() {
     else break;
   }
 
+  // 수면 통계
+  const sleepEntries = days
+    .map((d) => ({ date: d, rec: sleepByDate[toDateKey(d)] }))
+    .filter((e) => !!e.rec);
+  const sleepAvg = sleepEntries.length === 0
+    ? 0
+    : sleepEntries.reduce((s, e) => s + (e.rec!.duration_min), 0) / sleepEntries.length;
+  const maxSleep = Math.max(1, ...sleepEntries.map((e) => e.rec!.duration_min));
+
   const completionList = habitCompletion
     .slice()
     .sort((a, b) => b.ratio - a.ratio);
@@ -126,6 +139,37 @@ export default function StatsScreen() {
             </View>
           ) : (
             <Text style={styles.empty}>데이터가 없어요</Text>
+          )}
+        </ChartCard>
+
+        <ChartCard
+          title="수면 시간"
+          subtitle={sleepEntries.length > 0 ? `평균 ${formatMinutes(Math.round(sleepAvg))}` : '기록 없음'}
+        >
+          {sleepEntries.length > 0 ? (
+            <View style={{ gap: 8 }}>
+              {sleepEntries.map(({ date, rec }) => (
+                <View key={toDateKey(date)}>
+                  <View style={styles.barHead}>
+                    <Text style={styles.barName}>
+                      {date.getMonth() + 1}/{date.getDate()} · {rec!.bed_time} → {rec!.wake_time}
+                    </Text>
+                    <Text style={styles.barPct}>{(rec!.duration_min / 60).toFixed(1)}h</Text>
+                  </View>
+                  <View style={styles.barTrack}>
+                    <View style={[
+                      styles.barFill,
+                      {
+                        width: `${Math.max(2, (rec!.duration_min / maxSleep) * 100)}%`,
+                        backgroundColor: '#5E5CE6',
+                      },
+                    ]} />
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.empty}>수면 기록이 없어요</Text>
           )}
         </ChartCard>
 
