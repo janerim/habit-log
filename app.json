@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "HabitLog",
+    "slug": "habit-log",
+    "scheme": "habitlog",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.example.habitlog"
+    },
+    "android": {
+      "package": "com.example.habitlog"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
