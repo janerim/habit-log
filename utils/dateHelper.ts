@@ -27,8 +27,8 @@ export function monthTitle(date: Date): string {
 
 /** 월 그리드용 6주치(42일) 날짜 배열. */
 export function monthGridDays(month: Date): Date[] {
-  const start = startOfWeek(startOfMonth(month), { weekStartsOn: 0 });
-  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 0 });
+  const start = startOfWeek(startOfMonth(month), { weekStartsOn: 1 });
+  const end = endOfWeek(endOfMonth(month), { weekStartsOn: 1 });
   const days = eachDayOfInterval({ start, end });
   // 6주 고정 (셀 크기 일관성)
   while (days.length < 42) {

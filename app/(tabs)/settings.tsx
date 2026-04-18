@@ -13,16 +13,12 @@ import {
   requestNotificationPermission,
   scheduleHabitReminder,
 } from '../../utils/notificationManager';
-import { resetDatabase } from '../../db/database';
-import { exportBackup, importBackup } from '../../utils/backup';
-import { insertDummyData } from '../../utils/dummyData';
 
 export default function SettingsScreen() {
   const habits = useHabitStore((s) => s.habits);
   const groups = useHabitStore((s) => s.groups);
   const removeHabit = useHabitStore((s) => s.removeHabit);
   const removeGroup = useHabitStore((s) => s.removeGroup);
-  const load = useHabitStore((s) => s.load);
 
   const [reminderOn, setReminderOn] = useState(false);
   const [hour, setHour] = useState(21);
@@ -62,23 +58,6 @@ export default function SettingsScreen() {
     const next = (minute + delta + 60) % 60;
     setMinute(next);
     if (reminderOn) scheduleHabitReminder(hour, next);
-  }
-
-  function confirmReset() {
-    Alert.alert(
-      '데이터 초기화',
-      '모든 습관·그룹·기록·기분·수면 데이터가 완전히 삭제됩니다. 계속할까요?',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '초기화', style: 'destructive',
-          onPress: async () => {
-            await resetDatabase();
-            await load();
-          },
-        },
-      ]
-    );
   }
 
   function confirmDeleteGroup(id: string, name: string) {
@@ -220,69 +199,17 @@ export default function SettingsScreen() {
           })}
         </Section>
 
-        <Section title="데이터 백업">
-          <Pressable
-            onPress={async () => {
-              try {
-                await exportBackup();
-              } catch (e: any) {
-                Alert.alert('내보내기 실패', e.message);
-              }
-            }}
-            style={styles.actionBtn}
-          >
-            <MaterialCommunityIcons name="cloud-upload-outline" size={20} color="#0A84FF" />
-            <Text style={styles.actionText}>백업 내보내기</Text>
-          </Pressable>
-          <View style={styles.separator} />
-          <Pressable
-            onPress={async () => {
-              try {
-                const res = await importBackup();
-                if (res.success) {
-                  await load();
-                  Alert.alert('복구 완료', res.message);
-                } else if (res.message !== '취소됨') {
-                  Alert.alert('복구 실패', res.message);
-                }
-              } catch (e: any) {
-                Alert.alert('복구 실패', e.message);
-              }
-            }}
-            style={styles.actionBtn}
-          >
-            <MaterialCommunityIcons name="cloud-download-outline" size={20} color="#0A84FF" />
-            <Text style={styles.actionText}>백업 복구하기</Text>
-          </Pressable>
-        </Section>
-
         <Section title="데이터">
           <Pressable
-            onPress={() => {
-              Alert.alert(
-                '더미 데이터 추가',
-                '최근 30일치 습관 기록·기분·수면 데이터를 생성합니다.',
-                [
-                  { text: '취소', style: 'cancel' },
-                  {
-                    text: '추가',
-                    onPress: async () => {
-                      await insertDummyData();
-                      await load();
-                      Alert.alert('완료', '30일치 더미 데이터가 추가되었어요.');
-                    },
-                  },
-                ],
-              );
-            }}
+            onPress={() => router.push('/backup')}
             style={styles.actionBtn}
           >
-            <MaterialCommunityIcons name="database-plus-outline" size={20} color="#FF9500" />
-            <Text style={[styles.actionText, { color: '#FF9500' }]}>더미 데이터 추가 (심사용)</Text>
-          </Pressable>
-          <View style={styles.separator} />
-          <Pressable onPress={confirmReset} style={styles.dangerBtn}>
-            <Text style={styles.dangerText}>데이터 초기화</Text>
+            <MaterialCommunityIcons name="cloud-sync-outline" size={20} color="#0A84FF" />
+            <Text style={styles.actionText}>백업 / 복원 / 전체 삭제</Text>
+            <MaterialCommunityIcons
+              name="chevron-right" size={18} color="#C7C7CC"
+              style={{ marginLeft: 'auto' }}
+            />
           </Pressable>
         </Section>
       </ScrollView>
@@ -305,11 +232,20 @@ function Section({
 }
 
 function formatActiveDays(mask: string): string {
-  const names = ['일', '월', '화', '수', '목', '금', '토'];
   if (mask === '1111111') return '매일';
   if (mask === '0111110') return '평일';
   if (mask === '1000001') return '주말';
-  return names.filter((_, i) => mask[i] === '1').join('·');
+  // 월요일부터 표시 (내부 인덱스 1,2,3,4,5,6,0 순)
+  const order: { label: string; idx: number }[] = [
+    { label: '월', idx: 1 },
+    { label: '화', idx: 2 },
+    { label: '수', idx: 3 },
+    { label: '목', idx: 4 },
+    { label: '금', idx: 5 },
+    { label: '토', idx: 6 },
+    { label: '일', idx: 0 },
+  ];
+  return order.filter((o) => mask[o.idx] === '1').map((o) => o.label).join('·');
 }
 
 function TimeStepper({
@@ -379,8 +315,4 @@ const styles = StyleSheet.create({
   },
   actionText: { fontSize: 15, color: '#0A84FF', fontWeight: '600' },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E5EA', marginLeft: 46 },
-  dangerBtn: {
-    paddingVertical: 12, alignItems: 'center',
-  },
-  dangerText: { color: '#FF3B30', fontWeight: '600', fontSize: 15 },
 });

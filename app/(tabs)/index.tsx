@@ -46,8 +46,8 @@ export default function CalendarScreen() {
       loadMoods(sMonth(month), eMonth(month));
       loadSleep(sMonth(month), eMonth(month));
     } else {
-      const ws = sWeek(weekAnchor, { weekStartsOn: 0 });
-      const we = eWeek(weekAnchor, { weekStartsOn: 0 });
+      const ws = sWeek(weekAnchor, { weekStartsOn: 1 });
+      const we = eWeek(weekAnchor, { weekStartsOn: 1 });
       loadRange(ws, we);
       loadMoods(ws, we);
       loadSleep(ws, we);

@@ -60,6 +60,10 @@ export default function RootLayout() {
               name="group-edit"
               options={{ presentation: 'modal', headerShown: true, title: '그룹 편집' }}
             />
+            <Stack.Screen
+              name="backup"
+              options={{ presentation: 'modal', headerShown: true, title: '백업 / 복원' }}
+            />
           </Stack>
         </PaperProvider>
       </SafeAreaProvider>

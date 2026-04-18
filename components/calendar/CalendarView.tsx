@@ -18,7 +18,7 @@ interface Props {
   onLongPressDate?: (date: Date) => void;
 }
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
 export default function CalendarView({ month, onChangeMonth, onPressDate, onLongPressDate }: Props) {
   const days = useMemo(() => monthGridDays(month), [month]);
@@ -58,8 +58,8 @@ export default function CalendarView({ month, onChangeMonth, onPressDate, onLong
             key={w}
             style={[
               styles.week,
-              i === 0 && { color: '#FF3B30' },
-              i === 6 && { color: '#0A84FF' },
+              i === 5 && { color: '#0A84FF' },
+              i === 6 && { color: '#FF3B30' },
             ]}
           >
             {w}

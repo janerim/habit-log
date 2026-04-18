@@ -31,8 +31,8 @@ export default function StatsScreen() {
   const { start, end } = useMemo(() => {
     if (range === 'week') {
       return {
-        start: startOfWeek(now, { weekStartsOn: 0 }),
-        end: endOfWeek(now, { weekStartsOn: 0 }),
+        start: startOfWeek(now, { weekStartsOn: 1 }),
+        end: endOfWeek(now, { weekStartsOn: 1 }),
       };
     }
     return { start: startOfMonth(now), end: endOfMonth(now) };

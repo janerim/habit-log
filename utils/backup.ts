@@ -1,6 +1,6 @@
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
-import * as DocumentPicker from 'expo-document-picker';
+import * as Clipboard from 'expo-clipboard';
 import { getDB } from '../db/database';
 
 interface BackupData {
@@ -13,15 +13,23 @@ interface BackupData {
   sleep_records: any[];
 }
 
-export async function exportBackup(): Promise<void> {
+export interface BackupCounts {
+  habits: number;
+  groups: number;
+  records: number;
+  moods: number;
+  sleep: number;
+}
+
+export async function buildBackupJson(): Promise<{ json: string; counts: BackupCounts }> {
   const db = await getDB();
 
   const [groups, habits, records, moods, sleep] = await Promise.all([
-    db.getAllAsync('SELECT * FROM habit_groups'),
-    db.getAllAsync('SELECT * FROM habits'),
-    db.getAllAsync('SELECT * FROM habit_records'),
-    db.getAllAsync('SELECT * FROM daily_moods'),
-    db.getAllAsync('SELECT * FROM sleep_records'),
+    db.getAllAsync<any>('SELECT * FROM habit_groups'),
+    db.getAllAsync<any>('SELECT * FROM habits'),
+    db.getAllAsync<any>('SELECT * FROM habit_records'),
+    db.getAllAsync<any>('SELECT * FROM daily_moods'),
+    db.getAllAsync<any>('SELECT * FROM sleep_records'),
   ]);
 
   const data: BackupData = {
@@ -34,10 +42,24 @@ export async function exportBackup(): Promise<void> {
     sleep_records: sleep,
   };
 
-  const json = JSON.stringify(data, null, 2);
+  return {
+    json: JSON.stringify(data, null, 2),
+    counts: {
+      groups: groups.length,
+      habits: habits.length,
+      records: records.length,
+      moods: moods.length,
+      sleep: sleep.length,
+    },
+  };
+}
+
+export async function exportBackup(): Promise<void> {
+  const { json } = await buildBackupJson();
   const file = new File(Paths.cache, 'habitlog_backup.json');
   file.write(json);
 
+  await Clipboard.setStringAsync(json);
   await Sharing.shareAsync(file.uri, {
     mimeType: 'application/json',
     dialogTitle: 'HabitLog 백업 내보내기',
@@ -45,28 +67,18 @@ export async function exportBackup(): Promise<void> {
   });
 }
 
-export async function importBackup(): Promise<{ success: boolean; message: string }> {
-  const result = await DocumentPicker.getDocumentAsync({
-    type: 'application/json',
-    copyToCacheDirectory: true,
-  });
-
-  if (result.canceled || !result.assets?.[0]) {
-    return { success: false, message: '취소됨' };
-  }
-
-  const pickedFile = new File(result.assets[0].uri);
-  const json = await pickedFile.text();
-
+export async function importBackupFromJson(
+  json: string,
+): Promise<{ success: boolean; message: string }> {
   let data: BackupData;
   try {
     data = JSON.parse(json);
   } catch {
-    return { success: false, message: '잘못된 파일 형식이에요.' };
+    return { success: false, message: 'JSON 형식이 아니에요.' };
   }
 
-  if (data.version !== 1 || !data.habit_groups || !data.habits) {
-    return { success: false, message: '호환되지 않는 백업 파일이에요.' };
+  if (!data || (data as any).version !== 1 || !Array.isArray(data.habit_groups) || !Array.isArray(data.habits)) {
+    return { success: false, message: '호환되지 않는 백업 데이터예요.' };
   }
 
   const db = await getDB();

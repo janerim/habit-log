@@ -14,11 +14,11 @@ interface Props {
   onPressDate: (date: Date) => void;
 }
 
-const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const WEEKDAYS = ['월', '화', '수', '목', '금', '토', '일'];
 
 export default function WeekView({ weekAnchor, onChangeWeek, onPressDate }: Props) {
   const start = useMemo(
-    () => startOfWeek(weekAnchor, { weekStartsOn: 0 }),
+    () => startOfWeek(weekAnchor, { weekStartsOn: 1 }),
     [weekAnchor]
   );
   const days = useMemo(
@@ -57,8 +57,8 @@ export default function WeekView({ weekAnchor, onChangeWeek, onPressDate }: Prop
           >
             <Text style={[
               styles.weekday,
-              i === 0 && { color: '#FF3B30' },
-              i === 6 && { color: '#0A84FF' },
+              i === 5 && { color: '#0A84FF' },
+              i === 6 && { color: '#FF3B30' },
             ]}>{WEEKDAYS[i]}</Text>
             <Text style={[
               styles.dayNum,

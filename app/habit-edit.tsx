@@ -2,6 +2,7 @@
 // ?id=<habitId> 파라미터가 있으면 수정 모드, 없으면 신규.
 import React, { useMemo, useState } from 'react';
 import {
+  KeyboardAvoidingView, Platform,
   Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View,
 } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -98,7 +99,16 @@ export default function HabitEditScreen() {
   }
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#F2F2F7' }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: '#F2F2F7' }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+    >
+    <ScrollView
+      style={{ flex: 1, backgroundColor: '#F2F2F7' }}
+      contentContainerStyle={{ paddingBottom: 40 }}
+      keyboardShouldPersistTaps="handled"
+    >
       <Section title="이름">
         <TextInput
           value={name}
@@ -132,12 +142,20 @@ export default function HabitEditScreen() {
 
       <Section title="요일">
         <View style={styles.dayRow}>
-          {['일', '월', '화', '수', '목', '금', '토'].map((d, i) => {
-            const on = activeDays[i] === '1';
+          {[
+            { label: '월', idx: 1 },
+            { label: '화', idx: 2 },
+            { label: '수', idx: 3 },
+            { label: '목', idx: 4 },
+            { label: '금', idx: 5 },
+            { label: '토', idx: 6 },
+            { label: '일', idx: 0 },
+          ].map(({ label, idx }) => {
+            const on = activeDays[idx] === '1';
             return (
               <Pressable
-                key={i}
-                onPress={() => toggleDay(i)}
+                key={idx}
+                onPress={() => toggleDay(idx)}
                 style={[
                   styles.dayChip,
                   on && { backgroundColor: color, borderColor: color },
@@ -146,9 +164,9 @@ export default function HabitEditScreen() {
                 <Text style={[
                   styles.dayChipText,
                   on && { color: 'white', fontWeight: '700' },
-                  !on && i === 0 && { color: '#FF3B30' },
-                  !on && i === 6 && { color: '#0A84FF' },
-                ]}>{d}</Text>
+                  !on && idx === 0 && { color: '#FF3B30' },
+                  !on && idx === 6 && { color: '#0A84FF' },
+                ]}>{label}</Text>
               </Pressable>
             );
           })}
@@ -185,6 +203,7 @@ export default function HabitEditScreen() {
         <Text style={styles.saveText}>{existing ? '저장' : '추가'}</Text>
       </Pressable>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
