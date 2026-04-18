@@ -13,8 +13,11 @@
       "backgroundColor": "#4ECDC4"
     },
     "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.example.habitlog"
+      "supportsTablet": false,
+      "bundleIdentifier": "com.example.habitlog",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.example.habitlog",
@@ -29,6 +32,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "67134c36-115a-4909-bcae-4e7f4914063a"
+      }
     }
   }
 }
