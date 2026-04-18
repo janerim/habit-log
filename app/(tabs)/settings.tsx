@@ -67,7 +67,7 @@ export default function SettingsScreen() {
   function confirmReset() {
     Alert.alert(
       '데이터 초기화',
-      '모든 기록이 삭제되고 샘플 습관으로 돌아갑니다. 계속할까요?',
+      '모든 습관·그룹·기록·기분·수면 데이터가 완전히 삭제됩니다. 계속할까요?',
       [
         { text: '취소', style: 'cancel' },
         {

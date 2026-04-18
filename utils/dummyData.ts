@@ -1,4 +1,5 @@
-import { getDB } from '../db/database';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getDB, seedSampleData } from '../db/database';
 import { toDateKey } from './dateHelper';
 import { subDays } from 'date-fns';
 
@@ -6,9 +7,18 @@ export async function insertDummyData(): Promise<void> {
   const db = await getDB();
   const now = new Date();
 
-  const habits = await db.getAllAsync<{ id: string; group_id: string; active_days: string }>(
+  let habits = await db.getAllAsync<{ id: string; group_id: string; active_days: string }>(
     'SELECT id, group_id, active_days FROM habits WHERE is_active = 1',
   );
+
+  // 그룹/습관이 없으면 샘플 데이터를 먼저 주입
+  if (habits.length === 0) {
+    await seedSampleData();
+    await AsyncStorage.removeItem('habitlog.user_reset');
+    habits = await db.getAllAsync(
+      'SELECT id, group_id, active_days FROM habits WHERE is_active = 1',
+    );
+  }
 
   if (habits.length === 0) return;
 

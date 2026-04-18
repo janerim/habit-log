@@ -2,7 +2,10 @@
 // expo-sqlite 의 sync/async 새 API(openDatabaseAsync) 기준.
 
 import * as SQLite from 'expo-sqlite';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SAMPLE_GROUPS, SAMPLE_HABITS } from '../constants/sampleData';
+
+const RESET_FLAG_KEY = 'habitlog.user_reset';
 
 export interface HabitGroupRow {
   id: string;
@@ -107,10 +110,11 @@ export async function initDatabase(): Promise<void> {
     // 이미 컬럼이 있으면 무시
   }
 
+  const userReset = await AsyncStorage.getItem(RESET_FLAG_KEY);
   const existing = await db.getFirstAsync<{ c: number }>(
     'SELECT COUNT(*) as c FROM habit_groups'
   );
-  if ((existing?.c ?? 0) === 0) {
+  if ((existing?.c ?? 0) === 0 && userReset !== '1') {
     await seedSampleData();
   }
 }
@@ -148,7 +152,7 @@ export async function seedSampleData(): Promise<void> {
   });
 }
 
-/** 모든 데이터 삭제 후 샘플 재주입. */
+/** 모든 데이터 삭제 (샘플 포함, 재주입 안 함). */
 export async function resetDatabase(): Promise<void> {
   const db = await getDB();
   await db.execAsync(`
@@ -158,7 +162,7 @@ export async function resetDatabase(): Promise<void> {
     DELETE FROM daily_moods;
     DELETE FROM sleep_records;
   `);
-  await seedSampleData();
+  await AsyncStorage.setItem(RESET_FLAG_KEY, '1');
 }
 
 // --- Queries ---------------------------------------------------------------

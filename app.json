@@ -1,17 +1,27 @@
 {
   "expo": {
-    "name": "HabitLog",
+    "name": "Oneuldo",
     "slug": "habit-log",
     "scheme": "habitlog",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#4ECDC4"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.example.habitlog"
     },
     "android": {
-      "package": "com.example.habitlog"
+      "package": "com.example.habitlog",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#4ECDC4"
+      }
     },
     "plugins": [
       "expo-router",
