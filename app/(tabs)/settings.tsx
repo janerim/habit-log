@@ -14,6 +14,8 @@ import {
   scheduleHabitReminder,
 } from '../../utils/notificationManager';
 import { resetDatabase } from '../../db/database';
+import { exportBackup, importBackup } from '../../utils/backup';
+import { insertDummyData } from '../../utils/dummyData';
 
 export default function SettingsScreen() {
   const habits = useHabitStore((s) => s.habits);
@@ -218,7 +220,67 @@ export default function SettingsScreen() {
           })}
         </Section>
 
+        <Section title="데이터 백업">
+          <Pressable
+            onPress={async () => {
+              try {
+                await exportBackup();
+              } catch (e: any) {
+                Alert.alert('내보내기 실패', e.message);
+              }
+            }}
+            style={styles.actionBtn}
+          >
+            <MaterialCommunityIcons name="cloud-upload-outline" size={20} color="#0A84FF" />
+            <Text style={styles.actionText}>백업 내보내기</Text>
+          </Pressable>
+          <View style={styles.separator} />
+          <Pressable
+            onPress={async () => {
+              try {
+                const res = await importBackup();
+                if (res.success) {
+                  await load();
+                  Alert.alert('복구 완료', res.message);
+                } else if (res.message !== '취소됨') {
+                  Alert.alert('복구 실패', res.message);
+                }
+              } catch (e: any) {
+                Alert.alert('복구 실패', e.message);
+              }
+            }}
+            style={styles.actionBtn}
+          >
+            <MaterialCommunityIcons name="cloud-download-outline" size={20} color="#0A84FF" />
+            <Text style={styles.actionText}>백업 복구하기</Text>
+          </Pressable>
+        </Section>
+
         <Section title="데이터">
+          <Pressable
+            onPress={() => {
+              Alert.alert(
+                '더미 데이터 추가',
+                '최근 30일치 습관 기록·기분·수면 데이터를 생성합니다.',
+                [
+                  { text: '취소', style: 'cancel' },
+                  {
+                    text: '추가',
+                    onPress: async () => {
+                      await insertDummyData();
+                      await load();
+                      Alert.alert('완료', '30일치 더미 데이터가 추가되었어요.');
+                    },
+                  },
+                ],
+              );
+            }}
+            style={styles.actionBtn}
+          >
+            <MaterialCommunityIcons name="database-plus-outline" size={20} color="#FF9500" />
+            <Text style={[styles.actionText, { color: '#FF9500' }]}>더미 데이터 추가 (심사용)</Text>
+          </Pressable>
+          <View style={styles.separator} />
           <Pressable onPress={confirmReset} style={styles.dangerBtn}>
             <Text style={styles.dangerText}>데이터 초기화</Text>
           </Pressable>
@@ -311,6 +373,12 @@ const styles = StyleSheet.create({
   habitMeta: { fontSize: 11, color: '#8E8E93', marginTop: 2 },
   habitDot: { width: 10, height: 10, borderRadius: 5 },
   iconBtn: { padding: 4 },
+  actionBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    paddingVertical: 12, paddingHorizontal: 16,
+  },
+  actionText: { fontSize: 15, color: '#0A84FF', fontWeight: '600' },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: '#E5E5EA', marginLeft: 46 },
   dangerBtn: {
     paddingVertical: 12, alignItems: 'center',
   },
